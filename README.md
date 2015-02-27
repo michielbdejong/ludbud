@@ -1,4 +1,6 @@
-# ludbud: Let User Data Be User Data
+# WARNING: Under construction
+
+## ludbud: Let User Data Be User Data
 
 Ludbud is a fork of the on-the-wire parts of [remotestorage.js](https://github.com/remotestorage/remotestorage.js).
 Its aim is to be a second independent client-side implementation of the [remoteStorage protocol](http://tools.ietf.org/html/draft-dejong-remotestorage-04), as well as a client for other per-user data stores which offer an API which is accessible from the browser (i.e. support OAuth 2 implicit grant flow and provide CORS headers). Currently it supports Dropbox, GoogleDrive, and remoteStorage. Support for Hoodie and ownCloud is planned.
@@ -11,16 +13,19 @@ and clicking one of them will invoke an OAuth dance:
 ````html
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
   <body>
-    <button value="Connect to Dropbox!" onclick="Ludbud.oauth('dropbox');" />
-    <button value="Connect to Google Drive!" onclick="Ludbud.oauth('googledrive');" />
+    <button onclick="Ludbud.oauth('dropbox');">Connect to Dropbox!</button>
+    <button onclick="Ludbud.oauth('googledrive');">Connect to Google Drive!</button>
+    <button onclick="Ludbud.oauth('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
     <input id="user-address" placeholder="user@provider.com" />
-    <button value="Connect to your remoteStorage!" onclick="Ludbud.oauth('remotestorage', document.getElementById('user-address').value);" />
   </body>
-  <script src="ludbud.js"></script>
+  <script src="./ludbud.js"></script>
   <script>
     Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
-    Ludbud.setApiCredentials('google', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
+    Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
     var ludbud = Ludbud.fromWindowLocation();
     if (ludbud.isConnected) {      
       ludbud.getInfo('/', function(err, info) {
