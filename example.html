@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <button onclick="Ludbud.oauth('dropbox');">Connect to Dropbox!</button>
+    <button onclick="Ludbud.oauth('googledrive');">Connect to Google Drive!</button>
+    <button onclick="Ludbud.oauth('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
+    <input id="user-address" placeholder="user@provider.com" />
+  </body>
+  <script src="./ludbud.js"></script>
+  <script>
+    Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
+    Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
+    var ludbud = Ludbud.fromWindowLocation();
+    if (ludbud.isConnected) {      
+      ludbud.getInfo('/', function(err, info) {
+        console.log(err, info);
+      });
+    } else {
+      console.log('Please click one of the buttons');
+    }
+  </script>
+</html>
