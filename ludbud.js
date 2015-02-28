@@ -5,11 +5,18 @@ Ludbud = (function() {
   function fail(str) {
     console.log('FAIL: '+str);
   }
-function request(method, url, token, payload, header, callback) {
+function request(method, url, token, payload, headers, callback) {
+  console.log('request', method, url, token, payload, headers, callback);
   var xhr = new XMLHttpRequest();
   xhr.open(method, url);
   xhr.responseType = 'arraybuffer';
-  xhr.setRequestHeader('Authorization', 'Bearer '+token);
+  if (token) {
+    xhr.setRequestHeader('Authorization', 'Bearer '+token);
+  }
+  for (var i in headers) {
+    console.log('setting request header', i, headers[i]);
+    xhr.setRequestHeader(i, headers[i]);
+  }
   xhr.onload = function() {
     callback(null, {
       info: {
@@ -35,8 +42,20 @@ function requestJSON(url, token, callback) {
   };
   xhr.send();
 }
-ret.prototype.makeURL = function(dataPath) {
-  return this.credentials.apiBaseURL + dataPath;
+ret.prototype.makeURL = function(dataPath, isFolder) {
+  if (this.credentials.platform === 'owncloud') {
+    if (isFolder) {
+      return this.credentials.apiBaseURL
+          + '/shares?path='
+          + encodeURIComponent(dataPath)
+    } else {
+      return this.credentials.apiBaseURL
+          + '/shares/'
+          + encodeURIComponent(dataPath)
+    }
+  } else {
+    return this.credentials.apiBaseURL + dataPath;
+  }
 };
 ret.prototype.getInfo = function(dataPath, callback) {
   request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
@@ -67,9 +86,9 @@ ret.prototype.getFolder = function(dataPath, callback) {
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
   request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
-     'Content-Type': contentType
+     'Content-Type': contentType,
+     'If-None-Match': '"*"'
   }, function(err, data) {
-    console.log('PUT result', err, data);
     callback(err, (data && data.info ? data.info.ETag : undefined));
   });
 };
@@ -90,6 +109,21 @@ var apiCredentials = {};
 ret.setApiCredentials = function(platform, credentials) {
   apiCredentials[platform] = credentials;
 }
+ret.createCredentials = function(platform, host, user, pass) {
+  if (platform === 'owncloud') {
+    return {
+      apiBaseURL: 'https://'
+          + encodeURIComponent(user)
+          + ':'
+          + encodeURIComponent(pass)
+          + '@'
+          + host
+          + '/ocs/v1.php/apps/files_sharing/api/v1'
+    };
+  }
+  return {};
+}
+
 function getClientId(platform) {
   if (platform === 'remotestorage') {
     return window.location.origin;

@@ -2,6 +2,21 @@ var apiCredentials = {};
 ret.setApiCredentials = function(platform, credentials) {
   apiCredentials[platform] = credentials;
 }
+ret.createCredentials = function(platform, host, user, pass) {
+  if (platform === 'owncloud') {
+    return {
+      apiBaseURL: 'https://'
+          + encodeURIComponent(user)
+          + ':'
+          + encodeURIComponent(pass)
+          + '@'
+          + host
+          + '/ocs/v1.php/apps/files_sharing/api/v1'
+    };
+  }
+  return {};
+}
+
 function getClientId(platform) {
   if (platform === 'remotestorage') {
     return window.location.origin;

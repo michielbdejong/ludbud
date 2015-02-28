@@ -1,8 +1,15 @@
-function request(method, url, token, payload, header, callback) {
+function request(method, url, token, payload, headers, callback) {
+  console.log('request', method, url, token, payload, headers, callback);
   var xhr = new XMLHttpRequest();
   xhr.open(method, url);
   xhr.responseType = 'arraybuffer';
-  xhr.setRequestHeader('Authorization', 'Bearer '+token);
+  if (token) {
+    xhr.setRequestHeader('Authorization', 'Bearer '+token);
+  }
+  for (var i in headers) {
+    console.log('setting request header', i, headers[i]);
+    xhr.setRequestHeader(i, headers[i]);
+  }
   xhr.onload = function() {
     callback(null, {
       info: {

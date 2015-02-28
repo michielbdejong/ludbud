@@ -6,7 +6,9 @@ Let's respect user data on the web, and not consider it advertising data. Let th
 
 Ludbud is a client-side JavaScript library for accessing per-user data on the user's own data storage, without prescribing to the user where they store their data. This can be the user's ownCloud, their Hoodie, their remoteStorage, their Dropbox account, or their Google Drive account.
 
-So far, only remoteStorage is implemented, and even that platform is only implemented partially. The API still changes on a daily basis.
+So far, only remoteStorage is implemented, and even that platform is [only implemented partially](https://github.com/michielbdejong/ludbud/labels/remoteStorage). The API still changes on a daily basis.
+
+OwnCloud support is blocked by [ownCloud enabling CORS headers on their OCS Share API](https://github.com/owncloud/core/issues/10415#issuecomment-76533629).
 
 If you are looking for a more mature and complete client-side implementation of the [remoteStorage protocol](http://tools.ietf.org/html/draft-dejong-remotestorage-04), you should also check out [remotestorage.js](https://github.com/remotestorage/remotestorage.js), which is a much bigger library
 that also gives you features like local caching, asynchronous synchronization, and a UI widget, on top of what is basically an identical wire client.
@@ -20,9 +22,6 @@ Run `./build.sh` to concatenate the files from `src/` into `ludbud.js`.
 This is from `example.html`, which shows how to use Mozilla's localForage to store user data credentials from OAuth:
 
 ````js
-var ludbud;
-Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
-Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
 function getUserDataCredentials(callback) {
   var harvest = Ludbud.fromWindowLocation();
   if (harvest) {
@@ -35,7 +34,20 @@ function getUserDataCredentials(callback) {
     localforage.getItem('userDataCredentials', callback);
   }
 }
-getUserDataCredentials(function(err, userDataCredentials) {
+function connect(platform, hostOrUserAddress, user, pass) {
+  console.log('connect', platform, hostOrUserAddress, user, pass);
+  if (platform === 'owncloud') {
+    //ownCloud uses direct credentials:
+    var userDataCredentials = Ludbud.createCredentials(platform, hostOrUserAddress, user, pass);
+    localforage.setItem('userDataCredentials', userDataCredentials, function(err) {
+      go(err, userDataCredentials);
+    });
+  } else {
+    //remoteStorage, Dropbox, and Google Drive use OAuth:
+    Ludbud.oauth(platform, hostOrUserAddress);
+  }
+}
+function go(err, userDataCredentials) {
   if (err) {
     console.log('error getting user data credentials', err);
   } else if (userDataCredentials) {
@@ -44,7 +56,18 @@ getUserDataCredentials(function(err, userDataCredentials) {
   } else {
     console.log('No user data credentials yet. Please click one of the buttons');
   }
-});
+}
+function reset() {
+  localforage.clear(function() {
+    window.location = window.location.href;
+  });
+}
+
+//... on page load:
+var ludbud;
+Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
+Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
+getUserDataCredentials(go);
 ````
 
 To access the data:
@@ -87,6 +110,38 @@ ludbud.delete('/path/to/item', existingETag, function(err) {
 
 Helper function for the OAuth dance:
 ````js
-Ludbud.oauth(provider); -> sets window.location to initiate an OAuth dance
+Ludbud.createCredentials(provider, host, user, pass); -> creates credentials, use this one for the ownCloud platform
+Ludbud.oauth(provider); -> sets window.location to initiate an OAuth dance, use this for remoteStorage, Dropbox, and Google Drive platforms
 Ludbud.fromWindowLocation(); -> harvests window.location and returns the user data credentials
 ludbud.restoreWindowLocation(); -> cleans up the URL fragment after the OAuth dance (triggers a page refresh)
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+<!-- ownCloud support depends on https://github.com/owncloud/core/issues/10415#issuecomment-76533629
+    <h2>ownCloud</h2><p>
+      <button onclick="connect('owncloud', document.getElementById('host').value, document.getElementById('user').value, document.getElementById('pass').value);">Connect to your ownCloud:</button>
+      <input id="host" placeholder="host" value="demo.owncloud.org" />
+      <input id="user" placeholder="user" value="test" />
+      <input id="pass" placeholder="pass" type="password" value="test" />
+    </p>
+-->
+    <h2>remoteStorage</h2><p>
+      <button onclick="connect('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
+      <input id="user-address" placeholder="user@provider.com" value="michiel2@5apps.com" />
+    </p>
+    <h2>Dropbox</h2><p>
+      <button onclick="connect('dropbox');">Connect to Dropbox!</button>
+    </p>
+    <h2>Google Drive</h2><p>
+      <button onclick="connect('googledrive');">Connect to Google Drive!</button>
+    </p>
+    <h2>Disconnect</h2><p>
+      <button onclick="reset();">Disconnect!</button>
+    </p>
+  </body>
+  <script src="https://raw.githubusercontent.com/mozilla/localforage/master/dist/localforage.min.js"></script>
+  <script src="./ludbud.js"></script>
+  <script>

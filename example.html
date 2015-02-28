@@ -4,18 +4,31 @@
     <meta charset="utf-8" />
   </head>
   <body>
-    <button onclick="Ludbud.oauth('dropbox');">Connect to Dropbox!</button>
-    <button onclick="Ludbud.oauth('googledrive');">Connect to Google Drive!</button>
-    <button onclick="Ludbud.oauth('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
-    <input id="user-address" placeholder="user@provider.com" value="michiel2@5apps.com" />
-    <button onclick="reset();">Disconnect!</button>
+<!-- ownCloud support depends on https://github.com/owncloud/core/issues/10415#issuecomment-76533629
+    <h2>ownCloud</h2><p>
+      <button onclick="connect('owncloud', document.getElementById('host').value, document.getElementById('user').value, document.getElementById('pass').value);">Connect to your ownCloud:</button>
+      <input id="host" placeholder="host" value="demo.owncloud.org" />
+      <input id="user" placeholder="user" value="test" />
+      <input id="pass" placeholder="pass" type="password" value="test" />
+    </p>
+-->
+    <h2>remoteStorage</h2><p>
+      <button onclick="connect('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
+      <input id="user-address" placeholder="user@provider.com" value="michiel2@5apps.com" />
+    </p>
+    <h2>Dropbox</h2><p>
+      <button onclick="connect('dropbox');">Connect to Dropbox!</button>
+    </p>
+    <h2>Google Drive</h2><p>
+      <button onclick="connect('googledrive');">Connect to Google Drive!</button>
+    </p>
+    <h2>Disconnect</h2><p>
+      <button onclick="reset();">Disconnect!</button>
+    </p>
   </body>
   <script src="https://raw.githubusercontent.com/mozilla/localforage/master/dist/localforage.min.js"></script>
   <script src="./ludbud.js"></script>
   <script>
-    var ludbud;
-    Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
-    Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
     function getUserDataCredentials(callback) {
       var harvest = Ludbud.fromWindowLocation();
       if (harvest) {
@@ -28,7 +41,20 @@
         localforage.getItem('userDataCredentials', callback);
       }
     }
-    getUserDataCredentials(function(err, userDataCredentials) {
+    function connect(platform, hostOrUserAddress, user, pass) {
+      console.log('connect', platform, hostOrUserAddress, user, pass);
+      if (platform === 'owncloud') {
+        //ownCloud uses direct credentials:
+        var userDataCredentials = Ludbud.createCredentials(platform, hostOrUserAddress, user, pass);
+        localforage.setItem('userDataCredentials', userDataCredentials, function(err) {
+          go(err, userDataCredentials);
+        });
+      } else {
+        //remoteStorage, Dropbox, and Google Drive use OAuth:
+        Ludbud.oauth(platform, hostOrUserAddress);
+      }
+    }
+    function go(err, userDataCredentials) {
       if (err) {
         console.log('error getting user data credentials', err);
       } else if (userDataCredentials) {
@@ -53,13 +79,13 @@
         ludbud.getFolder('/', function(err, items) {
           console.log('getFolder result', err, items);
         });
-        ludbud.create('/public/notes/test', 'test', 'text/plain', function(err, etag) {
+        ludbud.create('/ludbud-test.txt', 'asdf', 'text/plain', function(err, etag) {
           console.log('C.reate:', err, etag);
-          ludbud.getBody('/public/notes/test', function(err, body) {
+          ludbud.getBody('/ludbud-test.txt', function(err, body) {
             console.log('R.ead:', err, body);
-            ludbud.update('/public/notes/test', 'test2', 'text/plain', etag, function(err, etag2) {
+            ludbud.update('/ludbud-test.txt', 'qwer', 'text/plain', etag, function(err, etag2) {
               console.log('U.pdate:', err, etag2);
-              ludbud.update('/public/notes/test', 'test2', 'text/plain', etag2, function(err) {
+              ludbud.remove('/ludbud-test.txt', etag2, function(err) {
                 console.log('D.elete:', err);
               });
             });
@@ -68,11 +94,17 @@
       } else {
         console.log('No user data credentials yet. Please click one of the buttons');
       }
-    });
+    }
     function reset() {
       localforage.clear(function() {
         window.location = window.location.href;
       });
     }
+
+    //... on page load:
+    var ludbud;
+    Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
+    Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
+    getUserDataCredentials(go);
   </script>
 </html>

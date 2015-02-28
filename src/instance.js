@@ -1,5 +1,17 @@
-ret.prototype.makeURL = function(dataPath) {
-  return this.credentials.apiBaseURL + dataPath;
+ret.prototype.makeURL = function(dataPath, isFolder) {
+  if (this.credentials.platform === 'owncloud') {
+    if (isFolder) {
+      return this.credentials.apiBaseURL
+          + '/shares?path='
+          + encodeURIComponent(dataPath)
+    } else {
+      return this.credentials.apiBaseURL
+          + '/shares/'
+          + encodeURIComponent(dataPath)
+    }
+  } else {
+    return this.credentials.apiBaseURL + dataPath;
+  }
 };
 ret.prototype.getInfo = function(dataPath, callback) {
   request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
@@ -30,7 +42,8 @@ ret.prototype.getFolder = function(dataPath, callback) {
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
   request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
-     'Content-Type': contentType
+     'Content-Type': contentType,
+     'If-None-Match': '"*"'
   }, function(err, data) {
     callback(err, (data && data.info ? data.info.ETag : undefined));
   });
