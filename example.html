@@ -13,6 +13,7 @@
   <script src="https://raw.githubusercontent.com/mozilla/localforage/master/dist/localforage.min.js"></script>
   <script src="./ludbud.js"></script>
   <script>
+    var ludbud;
     Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
     Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
     function getUserDataCredentials(callback) {
@@ -31,10 +32,28 @@
       if (err) {
         console.log('error getting user data credentials', err);
       } else if (userDataCredentials) {
-        var ludbud = new Ludbud(userDataCredentials);
-        console.log('now we can use this ludbud object to access the user\'s data');
+        ludbud = new Ludbud(userDataCredentials);
+        console.log('now we can use the ludbud object to access the user\'s data');
         ludbud.getInfo('/', function(err, info) {
-          console.log(err, info);
+          console.log('getInfo result', err, info);
+        });
+        ludbud.getBody('/', function(err, body) {
+          console.log('getBody result', err, body);
+        });
+        ludbud.getFolder('/', function(err, items) {
+          console.log('getFolder result', err, items);
+        });
+        ludbud.create('/public/notes/test', 'test', 'text/plain', function(err, etag) {
+          console.log('C.reate:', err, etag);
+          ludbud.getBody('/public/notes/test', function(err, body) {
+            console.log('R.ead:', err, body);
+            ludbud.update('/public/notes/test', 'test2', 'text/plain', etag, function(err, etag2) {
+              console.log('U.pdate:', err, etag2);
+              ludbud.update('/public/notes/test', 'test2', 'text/plain', etag2, function(err) {
+                console.log('D.elete:', err);
+              });
+            });
+          });
         });
       } else {
         console.log('No user data credentials yet. Please click one of the buttons');

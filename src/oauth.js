@@ -31,7 +31,8 @@ ret.oauth = function(platform, userAddress, scopes) {
     goTo('https://accounts.google.com/o/oauth2/auth');
   } else if (platform === 'remotestorage') {
     var parts = userAddress.split('@');
-    requestJSON('https://' + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress), function(err, data) {
+    requestJSON('https://' + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
+        undefined, function(err, data) {
       if (err) {
         fail('error retrieving webfinger for '+userAddress, err);
       } else if (typeof data === 'object' && Array.isArray(data.links)) {

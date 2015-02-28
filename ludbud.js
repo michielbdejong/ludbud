@@ -5,7 +5,7 @@ Ludbud = (function() {
   function fail(str) {
     console.log('FAIL: '+str);
   }
-function request(method, url, token, payload, callback) {
+function request(method, url, token, payload, header, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open(method, url);
   xhr.setRequestHeader('Authorization', 'Bearer '+token);
@@ -14,17 +14,21 @@ function request(method, url, token, payload, callback) {
       info: {
         'Content-Type': xhr.getResponseHeader('Content-Type'),
 	'Content-Length': xhr.getResponseHeader('Content-Length'),
-        'ETag': xhr.getResponseHeader('ETag')
+        ETag: xhr.getResponseHeader('ETag'),
+        isFolder: url.substr(-1) === '/'
       },
       body: xhr.response
     });
   };
   xhr.send();
 }
-function requestJSON(url, callback) {
+function requestJSON(url, token, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url);
   xhr.responseType = 'json';
+  if (token) {
+    xhr.setRequestHeader('Authorization', 'Bearer '+token);
+  }
   xhr.onload = function() {
     callback(null, xhr.response);
   };
@@ -34,13 +38,52 @@ ret.prototype.makeURL = function(dataPath) {
   return this.credentials.apiBaseURL + dataPath;
 };
 ret.prototype.getInfo = function(dataPath, callback) {
-  request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, function(err, data) {
+  request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
     if (err) {
       callback(err);
     } else {
       callback(err, data.info);
     }
   });
+};
+ret.prototype.getBody = function(dataPath, callback) {
+  request('GET', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
+    if (err) {
+      callback(err);
+    } else {
+      callback(err, data.body);
+    }
+  });
+};
+ret.prototype.getFolder = function(dataPath, callback) {
+  requestJSON(this.makeURL(dataPath), this.credentials.token, function(err, data) {
+    if (err) {
+      callback(err);
+    } else {
+      callback(err, data.items);
+    }
+  });
+};
+ret.prototype.create = function(dataPath, content, contentType, callback) {
+  request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
+     'Content-Type': contentType
+  }, function(err, data) {
+    console.log('PUT result', err, data);
+    callback(err, (data && data.info ? data.info.ETag : undefined));
+  });
+};
+ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
+  request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
+     'Content-Type': contentType,
+     'If-Match': existingETag
+  }, function(err, data) {
+    callback(err, (data && data.info ? data.info.ETag : undefined));
+  });
+};
+ret.prototype.remove = function(dataPath, existingETag, callback) {
+  request('DELETE', this.makeURL(dataPath), this.credentials.token, undefined, {
+     'If-Match': existingETag
+  }, callback);
 };
 var apiCredentials = {};
 ret.setApiCredentials = function(platform, credentials) {
@@ -75,7 +118,8 @@ ret.oauth = function(platform, userAddress, scopes) {
     goTo('https://accounts.google.com/o/oauth2/auth');
   } else if (platform === 'remotestorage') {
     var parts = userAddress.split('@');
-    requestJSON('https://' + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress), function(err, data) {
+    requestJSON('https://' + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
+        undefined, function(err, data) {
       if (err) {
         fail('error retrieving webfinger for '+userAddress, err);
       } else if (typeof data === 'object' && Array.isArray(data.links)) {
