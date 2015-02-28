@@ -1,26 +1,3 @@
-Ludbud = (function() {
-  var ret = {};
-  function fail(str) {
-    console.log('FAIL: '+str);
-  }
-function requestJSON(url, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.responseType = 'json';
-  xhr.onload = function() {
-    callback(null, xhr.response);
-  };
-  xhr.send();
-}
-function Instance(token, platform, scopes) {
-  this.isConnected = true;
-  this.token = token;
-  this.platform = platform;
-  this.scopes = scopes;
-}
-Instance.prototype.getInfo = function(path, callback) {
-  callback('not implemented yet!');
-};
 var apiCredentials = {};
 ret.setApiCredentials = function(platform, credentials) {
   apiCredentials[platform] = credentials;
@@ -86,5 +63,3 @@ ret.fromWindowLocation = function() {
     return new Instance(parsed['access_token'], stateParts[0], stateParts[1]);
   }
 }
-  return ret;
-})();
