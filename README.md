@@ -38,17 +38,20 @@ function getUserDataCredentials(callback) {
     localforage.getItem('userDataCredentials', callback);
   }
 }
-function connect(platform, hostOrUserAddress, user, pass) {
-  console.log('connect', platform, hostOrUserAddress, user, pass);
-  if (platform === 'owncloud') {
-    //ownCloud uses direct credentials:
-    var userDataCredentials = Ludbud.createCredentials(platform, hostOrUserAddress, user, pass);
+function connect(platform, host, user, pass) {
+  console.log('connect', platform, host, user, pass);
+  if (platform === 'owncloud' || platform === 'hoodie') {
+    //ownCloud and hoodie use direct credentials:
+    var userDataCredentials = Ludbud.createCredentials(platform, host, user, pass);
     localforage.setItem('userDataCredentials', userDataCredentials, function(err) {
       go(err, userDataCredentials);
     });
+  } else if (platform === 'remotestorage') {
+    //remoteStorage uses webfinger discovery + OAuth:
+    Ludbud.oauth(platform, user+'@'+host);
   } else {
-    //remoteStorage, Dropbox, and Google Drive use OAuth:
-    Ludbud.oauth(platform, hostOrUserAddress);
+    //Dropbox, and Google Drive use OAuth to centralized end-point:
+    Ludbud.oauth(platform);
   }
 }
 function go(err, userDataCredentials) {
