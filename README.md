@@ -2,10 +2,14 @@
 
 ## ludbud: Let User Data Be User Data
 
-Ludbud is a client-side JavaScript library for accessing per-user data on the user's remoteStorage, Dropbox, Google Drive, Hoodie, etcetera.
-Its aim is to be a second independent (and much more light-weight) client-side implementation of the [remoteStorage protocol](http://tools.ietf.org/html/draft-dejong-remotestorage-04), as well as a client for other per-user data stores which offer an API which is accessible from the browser (i.e. support OAuth 2 implicit grant flow and provide CORS headers). Currently it supports only remoteStorage, and only partially. Support for Dropbox, GoogleDrive, Hoodie, and ownCloud is planned.
+Let's respect user data on the web, and not consider it advertising data. Let the user's data be owned by the user, stored in a location they choose.
 
-Size (minified, gzipped): 1.2K
+Ludbud is a client-side JavaScript library for accessing per-user data on the user's own data storage, without prescribing to the user where they store their data. This can be the user's ownCloud, their Hoodie, their remoteStorage, their Dropbox account, or their Google Drive account.
+
+So far, only remoteStorage is implemented, and even that platform is only implemented partially. The API still changes on a daily basis.
+
+If you are looking for a more mature and complete client-side implementation of the [remoteStorage protocol](http://tools.ietf.org/html/draft-dejong-remotestorage-04), you should also check out [remotestorage.js](https://github.com/remotestorage/remotestorage.js), which is a much bigger library
+that also gives you features like local caching, asynchronous synchronization, and a UI widget, on top of what is basically an identical wire client.
 
 # Build
 
