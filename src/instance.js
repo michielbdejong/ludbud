@@ -1,29 +1,43 @@
 ret.prototype.makeURL = function(dataPath, isFolder) {
-  if (this.credentials.platform === 'owncloud') {
+  if (this.platform === 'owncloud') {
     if (isFolder) {
-      return this.credentials.apiBaseURL
+      return this.apiBaseURL
           + '/shares?path='
           + encodeURIComponent(dataPath)
     } else {
-      return this.credentials.apiBaseURL
+      return this.apiBaseURL
           + '/shares/'
           + encodeURIComponent(dataPath)
     }
   } else {
-    return this.credentials.apiBaseURL + dataPath;
+    return this.apiBaseURL + dataPath;
   }
 };
 ret.prototype.getInfo = function(dataPath, callback) {
-  request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(err, data.info);
-    }
-  });
+  if (this.platform === 'hoodie') {
+    this.getClient(function(err, client) {
+      if (err) {
+        callback(err);
+      } else {
+        client.store('item', dataPath).done(function(data) {
+          callback(null, data);
+        }).fail(function(err) {
+          callback(err);
+        });
+      }
+    });
+  } else {
+    request('HEAD', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(err, data.info);
+      }
+    });
+  }
 };
 ret.prototype.getBody = function(dataPath, callback) {
-  request('GET', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
+  request('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
     if (err) {
       callback(err);
     } else {
@@ -32,7 +46,7 @@ ret.prototype.getBody = function(dataPath, callback) {
   });
 };
 ret.prototype.getFolder = function(dataPath, callback) {
-  requestJSON(this.makeURL(dataPath), this.credentials.token, function(err, data) {
+  requestJSON(this.makeURL(dataPath), this.token, function(err, data) {
     if (err) {
       callback(err);
     } else {
@@ -41,7 +55,7 @@ ret.prototype.getFolder = function(dataPath, callback) {
   });
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
-  request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
+  request('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-None-Match': '"*"'
   }, function(err, data) {
@@ -49,7 +63,7 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   });
 };
 ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
-  request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
+  request('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-Match': existingETag
   }, function(err, data) {
@@ -57,7 +71,7 @@ ret.prototype.update = function(dataPath, content, contentType, existingETag, ca
   });
 };
 ret.prototype.remove = function(dataPath, existingETag, callback) {
-  request('DELETE', this.makeURL(dataPath), this.credentials.token, undefined, {
+  request('DELETE', this.makeURL(dataPath), this.token, undefined, {
      'If-Match': existingETag
   }, callback);
 };

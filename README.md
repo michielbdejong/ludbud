@@ -65,8 +65,8 @@ function reset() {
 
 //... on page load:
 var ludbud;
-Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
-Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
+Ludbud.setPlatformCredentials('dropbox', 'cybbbiarf4dkrce');
+Ludbud.setPlatformCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
 getUserDataCredentials(go);
 ````
 
@@ -110,38 +110,8 @@ ludbud.delete('/path/to/item', existingETag, function(err) {
 
 Helper function for the OAuth dance:
 ````js
+Ludbud.setPlatformCredentials(platform, keyOrId);
 Ludbud.createCredentials(provider, host, user, pass); -> creates credentials, use this one for the ownCloud platform
 Ludbud.oauth(provider); -> sets window.location to initiate an OAuth dance, use this for remoteStorage, Dropbox, and Google Drive platforms
 Ludbud.fromWindowLocation(); -> harvests window.location and returns the user data credentials
 ludbud.restoreWindowLocation(); -> cleans up the URL fragment after the OAuth dance (triggers a page refresh)
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-  </head>
-  <body>
-<!-- ownCloud support depends on https://github.com/owncloud/core/issues/10415#issuecomment-76533629
-    <h2>ownCloud</h2><p>
-      <button onclick="connect('owncloud', document.getElementById('host').value, document.getElementById('user').value, document.getElementById('pass').value);">Connect to your ownCloud:</button>
-      <input id="host" placeholder="host" value="demo.owncloud.org" />
-      <input id="user" placeholder="user" value="test" />
-      <input id="pass" placeholder="pass" type="password" value="test" />
-    </p>
--->
-    <h2>remoteStorage</h2><p>
-      <button onclick="connect('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
-      <input id="user-address" placeholder="user@provider.com" value="michiel2@5apps.com" />
-    </p>
-    <h2>Dropbox</h2><p>
-      <button onclick="connect('dropbox');">Connect to Dropbox!</button>
-    </p>
-    <h2>Google Drive</h2><p>
-      <button onclick="connect('googledrive');">Connect to Google Drive!</button>
-    </p>
-    <h2>Disconnect</h2><p>
-      <button onclick="reset();">Disconnect!</button>
-    </p>
-  </body>
-  <script src="https://raw.githubusercontent.com/mozilla/localforage/master/dist/localforage.min.js"></script>
-  <script src="./ludbud.js"></script>
-  <script>

@@ -1,6 +1,8 @@
 Ludbud = (function() {
   var ret = function(credentials){
-    this.credentials = credentials;
+    for(var i in credentials) {
+      this[i] = credentials[i];
+    }
   };
   function fail(str) {
     console.log('FAIL: '+str);
@@ -43,31 +45,45 @@ function requestJSON(url, token, callback) {
   xhr.send();
 }
 ret.prototype.makeURL = function(dataPath, isFolder) {
-  if (this.credentials.platform === 'owncloud') {
+  if (this.platform === 'owncloud') {
     if (isFolder) {
-      return this.credentials.apiBaseURL
+      return this.apiBaseURL
           + '/shares?path='
           + encodeURIComponent(dataPath)
     } else {
-      return this.credentials.apiBaseURL
+      return this.apiBaseURL
           + '/shares/'
           + encodeURIComponent(dataPath)
     }
   } else {
-    return this.credentials.apiBaseURL + dataPath;
+    return this.apiBaseURL + dataPath;
   }
 };
 ret.prototype.getInfo = function(dataPath, callback) {
-  request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(err, data.info);
-    }
-  });
+  if (this.platform === 'hoodie') {
+    this.getClient(function(err, client) {
+      if (err) {
+        callback(err);
+      } else {
+        client.store('item', dataPath).done(function(data) {
+          callback(null, data);
+        }).fail(function(err) {
+          callback(err);
+        });
+      }
+    });
+  } else {
+    request('HEAD', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(err, data.info);
+      }
+    });
+  }
 };
 ret.prototype.getBody = function(dataPath, callback) {
-  request('GET', this.makeURL(dataPath), this.credentials.token, undefined, {}, function(err, data) {
+  request('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
     if (err) {
       callback(err);
     } else {
@@ -76,7 +92,7 @@ ret.prototype.getBody = function(dataPath, callback) {
   });
 };
 ret.prototype.getFolder = function(dataPath, callback) {
-  requestJSON(this.makeURL(dataPath), this.credentials.token, function(err, data) {
+  requestJSON(this.makeURL(dataPath), this.token, function(err, data) {
     if (err) {
       callback(err);
     } else {
@@ -85,7 +101,7 @@ ret.prototype.getFolder = function(dataPath, callback) {
   });
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
-  request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
+  request('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-None-Match': '"*"'
   }, function(err, data) {
@@ -93,7 +109,7 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   });
 };
 ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
-  request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
+  request('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-Match': existingETag
   }, function(err, data) {
@@ -101,34 +117,55 @@ ret.prototype.update = function(dataPath, content, contentType, existingETag, ca
   });
 };
 ret.prototype.remove = function(dataPath, existingETag, callback) {
-  request('DELETE', this.makeURL(dataPath), this.credentials.token, undefined, {
+  request('DELETE', this.makeURL(dataPath), this.token, undefined, {
      'If-Match': existingETag
   }, callback);
 };
-var apiCredentials = {};
-ret.setApiCredentials = function(platform, credentials) {
-  apiCredentials[platform] = credentials;
+var platformCredentials = {};
+ret.setPlatformCredentials = function(platform, credentials) {
+  platformCredentials[platform] = credentials;
 }
 ret.createCredentials = function(platform, host, user, pass) {
+   var obj = {
+    platform: platform
+  };
   if (platform === 'owncloud') {
-    return {
-      apiBaseURL: 'https://'
+    obj.apiBaseURL = 'https://'
           + encodeURIComponent(user)
           + ':'
           + encodeURIComponent(pass)
           + '@'
           + host
-          + '/ocs/v1.php/apps/files_sharing/api/v1'
+          + '/ocs/v1.php/apps/files_sharing/api/v1';
+  } else if (platform === 'hoodie') {
+    if (!Hoodie) {
+      console.log('You need to add hoodie.js to your page for this to work, get it from https://hood.ie/');
+    }
+    obj.host = host;
+    obj.user = user;
+    obj.pass = pass;
+    obj.getClient = function(cb) {
+      //this will go onto the instantiated ludbud object, and bind to that
+      if (this.client) {
+        cb(null, this.client);
+      } else {
+        this.client = new Hoodie('https://'+this.host);
+        this.client.account.signIn(this.user, this.pass).done(function() {
+          cb(null, this.client);
+        }).fail(function(err) {
+          cb(err);
+        });
+      }
     };
   }
-  return {};
+  return obj;
 }
 
 function getClientId(platform) {
   if (platform === 'remotestorage') {
     return window.location.origin;
   } else {
-    return apiCredentials[platform];
+    return platformCredentials[platform];
   }
 }
 ret.oauth = function(platform, userAddress, scopes) {

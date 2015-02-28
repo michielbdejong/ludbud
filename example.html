@@ -13,8 +13,16 @@
     </p>
 -->
     <h2>remoteStorage</h2><p>
-      <button onclick="connect('remotestorage', document.getElementById('user-address').value);">Connect to your remoteStorage:</button>
-      <input id="user-address" placeholder="user@provider.com" value="michiel2@5apps.com" />
+      <button onclick="connect('remotestorage', document.getElementById('remotestorage-host').value, document.getElementById('remotestorage-user').value);">Connect to your remoteStorage:</button>
+      <input id="remotestorage-user" placeholder="user" value="michiel2" />
+      @
+      <input id="remotestorage-host" placeholder="provider.com" value="5apps.com" />
+    </p>
+    <h2>Hoodie</h2><p>
+      <button onclick="connect('hoodie', document.getElementById('hoodie-host').value, document.getElementById('hoodie-user').value, document.getElementById('hoodie-pass').value);">Connect to your Hoodie:</button>
+      <input id="hoodie-host" placeholder="host" value="demo.hood.ie" />
+      <input id="hoodie-user" placeholder="user" value="test" />
+      <input id="hoodie-pass" placeholder="pass" type="password" value="test" />
     </p>
     <h2>Dropbox</h2><p>
       <button onclick="connect('dropbox');">Connect to Dropbox!</button>
@@ -27,6 +35,7 @@
     </p>
   </body>
   <script src="https://raw.githubusercontent.com/mozilla/localforage/master/dist/localforage.min.js"></script>
+  <script src="./hoodie.js"></script>
   <script src="./ludbud.js"></script>
   <script>
     function getUserDataCredentials(callback) {
@@ -41,17 +50,20 @@
         localforage.getItem('userDataCredentials', callback);
       }
     }
-    function connect(platform, hostOrUserAddress, user, pass) {
-      console.log('connect', platform, hostOrUserAddress, user, pass);
-      if (platform === 'owncloud') {
-        //ownCloud uses direct credentials:
-        var userDataCredentials = Ludbud.createCredentials(platform, hostOrUserAddress, user, pass);
+    function connect(platform, host, user, pass) {
+      console.log('connect', platform, host, user, pass);
+      if (platform === 'owncloud' || platform === 'hoodie') {
+        //ownCloud and hoodie use direct credentials:
+        var userDataCredentials = Ludbud.createCredentials(platform, host, user, pass);
         localforage.setItem('userDataCredentials', userDataCredentials, function(err) {
           go(err, userDataCredentials);
         });
+      } else if (platform === 'remotestorage') {
+        //remoteStorage uses webfinger discovery + OAuth:
+        Ludbud.oauth(platform, user+'@'+host);
       } else {
-        //remoteStorage, Dropbox, and Google Drive use OAuth:
-        Ludbud.oauth(platform, hostOrUserAddress);
+        //Dropbox, and Google Drive use OAuth to centralized end-point:
+        Ludbud.oauth(platform);
       }
     }
     function go(err, userDataCredentials) {
@@ -103,8 +115,8 @@
 
     //... on page load:
     var ludbud;
-    Ludbud.setApiCredentials('dropbox', 'cybbbiarf4dkrce');
-    Ludbud.setApiCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
+    Ludbud.setPlatformCredentials('dropbox', 'cybbbiarf4dkrce');
+    Ludbud.setPlatformCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
     getUserDataCredentials(go);
   </script>
 </html>
