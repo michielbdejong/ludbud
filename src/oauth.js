@@ -21,19 +21,6 @@ ret.createCredentials = function(platform, host, user, pass) {
     obj.host = host;
     obj.user = user;
     obj.pass = pass;
-    obj.getClient = function(cb) {
-      //this will go onto the instantiated ludbud object, and bind to that
-      if (this.client) {
-        cb(null, this.client);
-      } else {
-        this.client = new Hoodie('https://'+this.host);
-        this.client.account.signIn(this.user, this.pass).done(function() {
-          cb(null, this.client);
-        }).fail(function(err) {
-          cb(err);
-        });
-      }
-    };
   }
   return obj;
 }

@@ -59,6 +59,20 @@ ret.prototype.makeURL = function(dataPath, isFolder) {
     return this.apiBaseURL + dataPath;
   }
 };
+ret.prototype.getClient = function(callback) {
+  if (this.client) {
+    cb(null, this.client);
+  } else if (this.platform === 'hoodie') {
+    this.client = new Hoodie('https://'+this.host);
+    this.client.account.signIn(this.user, this.pass).done(function() {
+      cb(null, this.client);
+    }).fail(function(err) {
+      cb(err);
+    });
+  } else {
+    callback('don\'t know how to instantiate a client for platform '+this.platform);
+  }
+};
 ret.prototype.getInfo = function(dataPath, callback) {
   if (this.platform === 'hoodie') {
     this.getClient(function(err, client) {
@@ -144,19 +158,6 @@ ret.createCredentials = function(platform, host, user, pass) {
     obj.host = host;
     obj.user = user;
     obj.pass = pass;
-    obj.getClient = function(cb) {
-      //this will go onto the instantiated ludbud object, and bind to that
-      if (this.client) {
-        cb(null, this.client);
-      } else {
-        this.client = new Hoodie('https://'+this.host);
-        this.client.account.signIn(this.user, this.pass).done(function() {
-          cb(null, this.client);
-        }).fail(function(err) {
-          cb(err);
-        });
-      }
-    };
   }
   return obj;
 }
