@@ -12,11 +12,10 @@ function requestJSON(url, callback) {
   };
   xhr.send();
 }
-function Instance(token, platform, scopes) {
+function Instance(token, platform) {
   this.isConnected = true;
   this.token = token;
   this.platform = platform;
-  this.scopes = scopes;
 }
 Instance.prototype.getInfo = function(path, callback) {
   callback('not implemented yet!');
@@ -40,7 +39,7 @@ ret.oauth = function(platform, userAddress, scopes) {
         + '?redirect_uri=' + encodeURIComponent(document.location.href.replace(/#.*$/, ''))
         + '&scope=' + encodeURIComponent(scopes || '*:rw')
         + '&client_id=' + encodeURIComponent(getClientId(platform))
-        + '&state=' + platform
+        + '&state=' + encodeURIComponent(platform+hash)
         + '&response_type=token';
   }
   if (platform === 'dropbox') {
@@ -82,9 +81,16 @@ ret.fromWindowLocation = function() {
     parsed[parts[0]] = decodeURIComponent(parts[1]);
   }
   if (parsed['state']) {
-    var stateParts = parsed['state'].split(' ');
-    return new Instance(parsed['access_token'], stateParts[0], stateParts[1]);
+    var stateParts = parsed['state'].split('#');
+    if (stateParts.length === 1) {//restore fact that there was no hash:
+      window.location = window.location.href.substring(0, hashPos);
+    } else {//restore hash as it was (even if the hash contained the hash sign):
+      var hashPos2 = parsed['state'].indexOf('#');
+      window.location = parsed['state'].substring(hashPos2);
+    }
+    return new Instance(parsed['access_token'], stateParts[0]);
   }
+  return {};
 }
   return ret;
 })();
