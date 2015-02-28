@@ -5,6 +5,8 @@
 Ludbud is a client-side JavaScript library for accessing per-user data on the user's remoteStorage, Dropbox, Google Drive, Hoodie, etcetera.
 Its aim is to be a second independent (and much more light-weight) client-side implementation of the [remoteStorage protocol](http://tools.ietf.org/html/draft-dejong-remotestorage-04), as well as a client for other per-user data stores which offer an API which is accessible from the browser (i.e. support OAuth 2 implicit grant flow and provide CORS headers). Currently it supports only remoteStorage, and only partially. Support for Dropbox, GoogleDrive, Hoodie, and ownCloud is planned.
 
+Size (minified, gzipped): 1.2K
+
 # Build
 
 Run `./build.sh` to concatenate the files from `src/` into `ludbud.js`.
