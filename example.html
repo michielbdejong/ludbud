@@ -39,6 +39,16 @@
         });
         ludbud.getBody('/', function(err, body) {
           console.log('getBody result', err, body);
+          //see if we can interpret that as utf-8:
+          try {
+            var fileReader = new FileReader();
+            fileReader.addEventListener('loadend', function (evt) {
+              console.log('body as utf-8', evt.target.result);
+            });
+            fileReader.readAsText(new Blob([body], { type: 'text/plain;charset=utf-8'}));
+          } catch(e) {
+            console.log(e);
+          }
         });
         ludbud.getFolder('/', function(err, items) {
           console.log('getFolder result', err, items);

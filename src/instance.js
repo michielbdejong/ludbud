@@ -32,7 +32,6 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   request('PUT', this.makeURL(dataPath), this.credentials.token, content, {
      'Content-Type': contentType
   }, function(err, data) {
-    console.log('PUT result', err, data);
     callback(err, (data && data.info ? data.info.ETag : undefined));
   });
 };

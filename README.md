@@ -85,8 +85,8 @@ ludbud.delete('/path/to/item', existingETag, function(err) {
 });
 ````
 
-Helper functions:
+Helper function for the OAuth dance:
 ````js
 Ludbud.oauth(provider); -> sets window.location to initiate an OAuth dance
-Ludbud.fromWindowLocation(); -> harvests window.location and returns an instantiated ludbud object
-ludbud.isConnected -> boolean
+Ludbud.fromWindowLocation(); -> harvests window.location and returns the user data credentials
+ludbud.restoreWindowLocation(); -> cleans up the URL fragment after the OAuth dance (triggers a page refresh)

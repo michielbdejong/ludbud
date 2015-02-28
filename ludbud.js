@@ -8,6 +8,7 @@ Ludbud = (function() {
 function request(method, url, token, payload, header, callback) {
   var xhr = new XMLHttpRequest();
   xhr.open(method, url);
+  xhr.responseType = 'arraybuffer';
   xhr.setRequestHeader('Authorization', 'Bearer '+token);
   xhr.onload = function() {
     callback(null, {
