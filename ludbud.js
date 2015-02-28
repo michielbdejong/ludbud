@@ -44,7 +44,7 @@ ret.oauth = function(platform, userAddress, scopes) {
   }
   if (platform === 'dropbox') {
     goTo('https://www.dropbox.com/1/oauth2/authorize');
-  } else if (platform === 'google') {
+  } else if (platform === 'googledrive') {
     goTo('https://accounts.google.com/o/oauth2/auth');
   } else if (platform === 'remotestorage') {
     var parts = userAddress.split('@');
