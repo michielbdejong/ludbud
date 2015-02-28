@@ -10,14 +10,19 @@ function getClientId(platform) {
   }
 }
 ret.oauth = function(platform, userAddress, scopes) {
-  function goTo(baseURL) {
+  var apiBaseURL;
+  function goTo(oauthBaseURL) {//this uses some variables from its parent scope
     var hashPos = document.location.href.indexOf('#'),
         hash = (hashPos === -1 ? '' : document.location.href.substring(hashPos));
-    window.location = baseURL
+    window.location = oauthBaseURL
         + '?redirect_uri=' + encodeURIComponent(document.location.href.replace(/#.*$/, ''))
         + '&scope=' + encodeURIComponent(scopes || '*:rw')
         + '&client_id=' + encodeURIComponent(getClientId(platform))
-        + '&state=' + encodeURIComponent(platform+hash)
+        + '&state=' + encodeURIComponent(JSON.stringify({
+            platform: platform,
+            hash: hash,
+            apiBaseURL: apiBaseURL
+          }))
         + '&response_type=token';
   }
   if (platform === 'dropbox') {
@@ -35,6 +40,7 @@ ret.oauth = function(platform, userAddress, scopes) {
               && data.links[i].rel === 'remotestorage'
               && typeof data.links[i].properties === 'object'
               && typeof data.links[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2'] === 'string') {
+            apiBaseURL = data.links[i].href;
             goTo(data.links[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2']);
             return;
           }
@@ -47,10 +53,11 @@ ret.oauth = function(platform, userAddress, scopes) {
     fail('unknown platform '+platform);
   }
 }
+var windowLocationToRestore;
 ret.fromWindowLocation = function() {
   var hashPos = window.location.href.indexOf('#');
   if (hashPos === -1) {
-    return {};
+    return;
   }
   var parsed = {},
       pairs = window.location.href.substring(hashPos+1).split('&');
@@ -59,14 +66,24 @@ ret.fromWindowLocation = function() {
     parsed[parts[0]] = decodeURIComponent(parts[1]);
   }
   if (parsed['state']) {
-    var stateParts = parsed['state'].split('#');
-    if (stateParts.length === 1) {//restore fact that there was no hash:
-      window.location = window.location.href.substring(0, hashPos);
-    } else {//restore hash as it was (even if the hash contained the hash sign):
-      var hashPos2 = parsed['state'].indexOf('#');
-      window.location = parsed['state'].substring(hashPos2);
+    try {
+      var stateObj = JSON.parse(parsed['state']);
+console.log(parsed, stateObj);
+      if (stateObj.hash) { // restore hash as it was:
+        windowLocationToRestore = stateObj.hash;
+      } else { // restore fact that there was no hash:
+        windowLocationToRestore = window.location.href.substring(0, hashPos);
+      }
+      return {
+        platform: stateObj.platform,
+        token: parsed['access_token'],
+        apiBaseURL: stateObj.apiBaseURL
+      };
+    } catch(e) {
+console.log(parsed, e);
     }
-    return new Instance(parsed['access_token'], stateParts[0]);
   }
-  return {};
+}
+ret.restoreWindowLocation = function() {
+  window.location = windowLocationToRestore;
 }

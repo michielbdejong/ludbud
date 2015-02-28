@@ -1,8 +1,12 @@
-function Instance(token, platform) {
-  this.isConnected = true;
-  this.token = token;
-  this.platform = platform;
-}
-Instance.prototype.getInfo = function(path, callback) {
-  callback('not implemented yet!');
+ret.prototype.makeURL = function(dataPath) {
+  return this.credentials.apiBaseURL + dataPath;
+};
+ret.prototype.getInfo = function(dataPath, callback) {
+  request('HEAD', this.makeURL(dataPath), this.credentials.token, undefined, function(err, data) {
+    if (err) {
+      callback(err);
+    } else {
+      callback(err, data.info);
+    }
+  });
 };
