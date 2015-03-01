@@ -78,7 +78,7 @@ function request(method, url, responseType, payload, headers, callback) {
 }
 //convenience methods that wrap around request:
 function requestJSON(url, token, callback) {
-  var header = {};
+  var headers = {};
   if (token) {
     headers.Authorization =  'Bearer '+token;
   }
