@@ -10,7 +10,6 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    fail('request timeout', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -20,7 +19,6 @@ function request(method, url, responseType, payload, headers, callback) {
       return;
     }
     
-    fail('request error', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -29,7 +27,6 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    fail('request abort', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };

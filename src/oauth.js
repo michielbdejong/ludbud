@@ -3,7 +3,7 @@ ret.setPlatformCredentials = function(platform, credentials) {
   platformCredentials[platform] = credentials;
 }
 ret.createCredentials = function(platform, host, user, pass) {
-  console.log('WARNING: platform ' + platform + ' not fully supported yet');
+  fail('WARNING: platform ' + platform + ' not fully supported yet');
   var obj = {
     platform: platform
   };
@@ -17,7 +17,7 @@ ret.createCredentials = function(platform, host, user, pass) {
           + '/ocs/v1.php/apps/files_sharing/api/v1';
   } else if (platform === 'hoodie') {
     if (!Hoodie) {
-      console.log('You need to add hoodie.js to your page for this to work, get it from https://hood.ie/');
+      fail('You need to add hoodie.js to your page for this to work, get it from https://hood.ie/');
     }
     obj.host = host;
     obj.user = user;
@@ -35,7 +35,7 @@ function getClientId(platform) {
 }
 ret.oauth = function(platform, userAddress, scopes) {
   if (platform !== 'remotestorage') {
-    console.log('WARNING: platform ' + platform + ' not fully supported yet');
+    fail('WARNING: platform ' + platform + ' not fully supported yet');
   }
   var apiBaseURL;
   function goTo(oauthBaseURL) {//this uses some variables from its parent scope
