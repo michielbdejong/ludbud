@@ -4,45 +4,91 @@ Ludbud = (function() {
       this[i] = credentials[i];
     }
   };
+
+  ret.ERR_TIMEOUT = 'ERR_TIMEOUT';
+  ret.ERR_ACCESS_DENIED = 'ERR_ACCESS_DENIED';
+  ret.ERR_SERVER_ERROR = 'ERR_SERVER_ERROR';
+  ret.ERR_NOT_FOUND = 'ERR_NOT_FOUND';
+  ret.ERR_IS_FOLDER = 'ERR_IS_FOLDER';
+  ret.ERR_NOT_A_FOLDER = 'ERR_NOT_A_FOLDER';
+
   function fail(str) {
     console.log('FAIL: '+str);
   }
-function request(method, url, token, payload, headers, callback) {
-  console.log('request', method, url, token, payload, headers, callback);
-  var xhr = new XMLHttpRequest();
+function request(method, url, responseType, payload, headers, callback) {
+  console.log('request', method, url, responseType, payload, headers, callback);
+  var xhr = new XMLHttpRequest(), calledBack = false;
   xhr.open(method, url);
-  xhr.responseType = 'arraybuffer';
-  if (token) {
-    xhr.setRequestHeader('Authorization', 'Bearer '+token);
-  }
+  xhr.responseType = responseType;
+  xhr.timeout = 10000;
   for (var i in headers) {
     console.log('setting request header', i, headers[i]);
     xhr.setRequestHeader(i, headers[i]);
   }
+  xhr.ontimeout = function(evt) {
+    if (calledBack) {
+      return;
+    }
+    console.log('request timeout', evt, xhr.status);
+    callback(ret.ERR_TIMEOUT);
+    calledBack = true;
+  };
+   
+  xhr.onerror = function(evt) {
+    if (calledBack) {
+      return;
+    }
+    
+    console.log('request error', evt, xhr.status);
+    callback(ret.ERR_TIMEOUT);
+    calledBack = true;
+  };
+   
+  xhr.onabort = function(evt) {
+    if (calledBack) {
+      return;
+    }
+    console.log('request abort', evt, xhr.status);
+    callback(ret.ERR_TIMEOUT);
+    calledBack = true;
+  };
+   
   xhr.onload = function() {
-    callback(null, {
-      info: {
-        'Content-Type': xhr.getResponseHeader('Content-Type'),
-	'Content-Length': xhr.getResponseHeader('Content-Length'),
-        ETag: xhr.getResponseHeader('ETag'),
-        isFolder: url.substr(-1) === '/'
-      },
-      body: xhr.response
-    });
+    if (calledBack) {
+      return;
+    }
+    if (xhr.status >= 500) { // treat any 500+ response code as server error
+      callback(ret.ERR_SERVER_ERROR);
+    } else if (xhr.status === 404) { // special case for 404s
+      callback(ret.ERR_NOT_FOUND);
+    } else if (xhr.status >= 400) { // and rest of 400 range as access denied
+      callback(ret.ERR_ACCESS_DENIED);
+    } else { // now treat any response code under 400 as successful
+      callback(null, {
+        info: {
+          'Content-Type': xhr.getResponseHeader('Content-Type'),
+          'Content-Length': xhr.getResponseHeader('Content-Length'),
+          ETag: xhr.getResponseHeader('ETag'),
+          isFolder: url.substr(-1) === '/'
+        },
+        body: xhr.response
+      });
+    }
+    calledBack = true;
   };
   xhr.send();
 }
+//convenience methods that wrap around request:
 function requestJSON(url, token, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.responseType = 'json';
+  return request('GET', url, 'json', undefined, {}, function(err, data) {
+    return callback(err, (typeof data === 'object' ? data.body : data));
+  });
+}
+function requestArrayBuffer(method, url, token, payload, headers, callback) {
   if (token) {
-    xhr.setRequestHeader('Authorization', 'Bearer '+token);
+    headers.Authorization =  'Bearer '+token;
   }
-  xhr.onload = function() {
-    callback(null, xhr.response);
-  };
-  xhr.send();
+  return request(method, url, 'arraybuffer', payload, headers, callback);
 }
 ret.prototype.makeURL = function(dataPath, isFolder) {
   if (this.platform === 'owncloud') {
@@ -87,7 +133,7 @@ ret.prototype.getInfo = function(dataPath, callback) {
       }
     });
   } else {
-    request('HEAD', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+    requestArrayBuffer('HEAD', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
       if (err) {
         callback(err);
       } else {
@@ -97,7 +143,7 @@ ret.prototype.getInfo = function(dataPath, callback) {
   }
 };
 ret.prototype.getBody = function(dataPath, callback) {
-  request('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+  requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
     if (err) {
       callback(err);
     } else {
@@ -115,7 +161,7 @@ ret.prototype.getFolder = function(dataPath, callback) {
   });
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
-  request('PUT', this.makeURL(dataPath), this.token, content, {
+  requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-None-Match': '"*"'
   }, function(err, data) {
@@ -123,7 +169,7 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   });
 };
 ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
-  request('PUT', this.makeURL(dataPath), this.token, content, {
+  requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-Match': existingETag
   }, function(err, data) {
@@ -131,7 +177,7 @@ ret.prototype.update = function(dataPath, content, contentType, existingETag, ca
   });
 };
 ret.prototype.remove = function(dataPath, existingETag, callback) {
-  request('DELETE', this.makeURL(dataPath), this.token, undefined, {
+  requestArrayBuffer('DELETE', this.makeURL(dataPath), this.token, undefined, {
      'If-Match': existingETag
   }, callback);
 };

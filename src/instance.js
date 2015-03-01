@@ -41,7 +41,7 @@ ret.prototype.getInfo = function(dataPath, callback) {
       }
     });
   } else {
-    request('HEAD', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+    requestArrayBuffer('HEAD', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
       if (err) {
         callback(err);
       } else {
@@ -51,7 +51,7 @@ ret.prototype.getInfo = function(dataPath, callback) {
   }
 };
 ret.prototype.getBody = function(dataPath, callback) {
-  request('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+  requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
     if (err) {
       callback(err);
     } else {
@@ -69,7 +69,7 @@ ret.prototype.getFolder = function(dataPath, callback) {
   });
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
-  request('PUT', this.makeURL(dataPath), this.token, content, {
+  requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-None-Match': '"*"'
   }, function(err, data) {
@@ -77,7 +77,7 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   });
 };
 ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
-  request('PUT', this.makeURL(dataPath), this.token, content, {
+  requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {
      'Content-Type': contentType,
      'If-Match': existingETag
   }, function(err, data) {
@@ -85,7 +85,7 @@ ret.prototype.update = function(dataPath, content, contentType, existingETag, ca
   });
 };
 ret.prototype.remove = function(dataPath, existingETag, callback) {
-  request('DELETE', this.makeURL(dataPath), this.token, undefined, {
+  requestArrayBuffer('DELETE', this.makeURL(dataPath), this.token, undefined, {
      'If-Match': existingETag
   }, callback);
 };

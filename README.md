@@ -80,7 +80,7 @@ getUserDataCredentials(go);
 To access the data:
 ````js
 ludbud.getInfo('/path/to/item', function(err, info) {
-  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, or Ludbud.ERR_NOT_FOUND
+  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, or Ludbud.ERR_NOT_FOUND
   //if not, info is an object containing one or more of:
   // * Content-Type (string)
   // * Content-Length (number, measured in bytes on the wire)
@@ -89,12 +89,12 @@ ludbud.getInfo('/path/to/item', function(err, info) {
 });
 
 ludbud.getBody('/path/to/item', function(err, body) {
-  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
+  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
   //if not, body is an ArrayBuffer
 });
 
 ludbud.getFolder('/path/to/folder/', function(err, listing) {
-  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_NOT_A_FOLDER
+  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_NOT_A_FOLDER
   //if not, listing will be an object where keys are item names, and values are objects containing one or more of:
   // * Content-Type (string)
   // * Content-Length (number, measured in bytes on the wire)
@@ -105,13 +105,13 @@ ludbud.getFolder('/path/to/folder/', function(err, listing) {
 To change the data
 ````js
 ludbud.create('/path/to/item', content, contentType, function(err) {
-  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, or Ludbud.ERR_IS_FOLDER
+  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, or Ludbud.ERR_IS_FOLDER
 });
 ludbud.update('/path/to/item', newContent, newContentType, existingETag, function(err) {
-  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
+  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
 });
 ludbud.delete('/path/to/item', existingETag, function(err) {
-  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
+  //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
 });
 ````
 
