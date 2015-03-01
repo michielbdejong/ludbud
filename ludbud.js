@@ -186,7 +186,8 @@ ret.setPlatformCredentials = function(platform, credentials) {
   platformCredentials[platform] = credentials;
 }
 ret.createCredentials = function(platform, host, user, pass) {
-   var obj = {
+  console.log('WARNING: platform ' + platform + ' not fully supported yet');
+  var obj = {
     platform: platform
   };
   if (platform === 'owncloud') {
@@ -216,6 +217,9 @@ function getClientId(platform) {
   }
 }
 ret.oauth = function(platform, userAddress, scopes) {
+  if (platform !== 'remotestorage') {
+    console.log('WARNING: platform ' + platform + ' not fully supported yet');
+  }
   var apiBaseURL;
   function goTo(oauthBaseURL) {//this uses some variables from its parent scope
     var hashPos = document.location.href.indexOf('#'),

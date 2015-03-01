@@ -1,4 +1,4 @@
-# WARNING: Under construction
+# WARNING: Only remoteStorage platform supported so far
 
 ## ludbud: Let User Data Be User Data
 
@@ -6,7 +6,7 @@ Let's respect user data on the web, and not consider it advertising data. Let th
 
 Ludbud is a client-side JavaScript library for accessing per-user data on the user's own data storage, without prescribing to the user where they store their data. This can be the user's ownCloud, their Hoodie, their remoteStorage, their Dropbox account, or their Google Drive account.
 
-So far, remoteStorage is [mostly](https://github.com/michielbdejong/ludbud/labels/remoteStorage) implemented, and I'm working on Hoodie.
+So far, remoteStorage is [mostly](https://github.com/michielbdejong/ludbud/labels/remoteStorage) implemented (please help me test it!), and I'm working on Hoodie.
 
 The API still changes on a daily basis.
 
