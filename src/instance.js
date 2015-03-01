@@ -51,22 +51,30 @@ ret.prototype.getInfo = function(dataPath, callback) {
   }
 };
 ret.prototype.getBody = function(dataPath, callback) {
-  requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(err, data.body);
-    }
-  });
+  if (dataPath.substr(-1) === '/') {
+    callback(ret.ERR_IS_FOLDER);
+  } else {
+    requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(err, data.body);
+      }
+    });
+  }
 };
 ret.prototype.getFolder = function(dataPath, callback) {
-  requestJSON(this.makeURL(dataPath), this.token, function(err, data) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(err, data.items);
-    }
-  });
+  if (dataPath.substr(-1) === '/') {
+    requestJSON(this.makeURL(dataPath), this.token, function(err, data) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(err, data.items);
+      }
+    });
+  } else {
+    callback(ret.ERR_NOT_A_FOLDER);
+  }
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
   requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {

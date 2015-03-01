@@ -10,7 +10,7 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    ret.fail('request timeout', evt, xhr.status);
+    fail('request timeout', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -20,7 +20,7 @@ function request(method, url, responseType, payload, headers, callback) {
       return;
     }
     
-    ret.fail('request error', evt, xhr.status);
+    fail('request error', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -29,7 +29,7 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    ret.fail('request abort', evt, xhr.status);
+    fail('request abort', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -57,7 +57,7 @@ function request(method, url, responseType, payload, headers, callback) {
     }
     calledBack = true;
   };
-  xhr.send();
+  xhr.send(payload);
 }
 //convenience methods that wrap around request:
 function requestJSON(url, token, callback) {
@@ -73,6 +73,5 @@ function requestArrayBuffer(method, url, token, payload, headers, callback) {
   if (token) {
     headers.Authorization =  'Bearer '+token;
   }
-console.log('headers', headers);
   return request(method, url, 'arraybuffer', payload, headers, callback);
 }

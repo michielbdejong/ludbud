@@ -76,37 +76,8 @@
       } else if (userDataCredentials) {
         ludbud = new Ludbud(userDataCredentials);
         console.log('now we can use the ludbud object to access the user\'s data');
-        ludbud.getInfo('/', function(err, info) {
-          console.log('getInfo result', err, info);
-        });
-        ludbud.getBody('/', function(err, body) {
-          console.log('getBody result', err, body);
-          //see if we can interpret that as utf-8:
-          try {
-            var fileReader = new FileReader();
-            fileReader.addEventListener('loadend', function (evt) {
-              console.log('body as utf-8', evt.target.result);
-            });
-            fileReader.readAsText(new Blob([body], { type: 'text/plain;charset=utf-8'}));
-          } catch(e) {
-            console.log(e);
-          }
-        });
-        ludbud.getFolder('/', function(err, items) {
-          console.log('getFolder result', err, items);
-        });
-        ludbud.create('/ludbud-test.txt', 'asdf', 'text/plain', function(err, etag) {
-          console.log('C.reate:', err, etag);
-          ludbud.getBody('/ludbud-test.txt', function(err, body) {
-            console.log('R.ead:', err, body);
-            ludbud.update('/ludbud-test.txt', 'qwer', 'text/plain', etag, function(err, etag2) {
-              console.log('U.pdate:', err, etag2);
-              ludbud.remove('/ludbud-test.txt', etag2, function(err) {
-                console.log('D.elete:', err);
-              });
-            });
-          });
-        });
+        // go to first step of crud example:
+        create();
       } else {
         console.log('No user data credentials yet. Please click one of the buttons');
       }
@@ -117,7 +88,60 @@
       });
     }
 
+    // C.R.U.D. example usage:
+
+    var etag1, etag2;
+    function create() {
+      ludbud.create('/ludbud/test.txt', 'asdf', 'text/plain; charset=utf-8', function(err, etag) {
+        console.log('C.reate:', err, etag);
+        etag1 = etag;
+        readInfo();
+      });
+    }
+    function readInfo() {
+      ludbud.getInfo('/ludbud/test.txt', function(err, info) {
+        console.log('R.ead info:', err, info);
+        readFolder();
+      });
+    }
+    function readFolder() {
+      ludbud.getFolder('/ludbud/', function(err, items) {
+        console.log('R.ead folder /ludbud/:', err, items);
+        readBody();
+      });
+    }
+    function readBody() {
+      ludbud.getBody('/ludbud/test.txt', function(err, body) {
+        console.log('R.ead body (ArrayBuffer)', err, body);
+        //see if we can interpret that as utf-8:
+        try {
+          var fileReader = new FileReader();
+          fileReader.addEventListener('loadend', function (evt) {
+            console.log('R.ead body (as utf-8)', evt.target.result);
+          });
+          fileReader.readAsText(new Blob([body], { type: 'text/plain;charset=utf-8'}));
+        } catch(e) {
+          console.log('Could not read ArrayBuffer as utf-8', e);
+        }
+        update();
+      });
+    }
+    function update() {
+      ludbud.update('/ludbud/test.txt', 'qwer', 'text/plain', etag1, function(err, newETag) {
+        console.log('U.pdate:', err, newETag);
+        etag2 = newETag;
+        remove();
+      });
+    }
+    function remove() {
+      ludbud.remove('/ludbud/test.txt', etag2, function(err) {
+        console.log('D.elete:', err);
+      });
+    }
+
+
     //... on page load:
+
     var ludbud;
     Ludbud.setPlatformCredentials('dropbox', 'cybbbiarf4dkrce');
     Ludbud.setPlatformCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');

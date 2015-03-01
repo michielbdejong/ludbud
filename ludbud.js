@@ -27,7 +27,7 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    ret.fail('request timeout', evt, xhr.status);
+    fail('request timeout', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -37,7 +37,7 @@ function request(method, url, responseType, payload, headers, callback) {
       return;
     }
     
-    ret.fail('request error', evt, xhr.status);
+    fail('request error', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -46,7 +46,7 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    ret.fail('request abort', evt, xhr.status);
+    fail('request abort', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -74,7 +74,7 @@ function request(method, url, responseType, payload, headers, callback) {
     }
     calledBack = true;
   };
-  xhr.send();
+  xhr.send(payload);
 }
 //convenience methods that wrap around request:
 function requestJSON(url, token, callback) {
@@ -90,7 +90,6 @@ function requestArrayBuffer(method, url, token, payload, headers, callback) {
   if (token) {
     headers.Authorization =  'Bearer '+token;
   }
-console.log('headers', headers);
   return request(method, url, 'arraybuffer', payload, headers, callback);
 }
 ret.prototype.makeURL = function(dataPath, isFolder) {
@@ -146,22 +145,30 @@ ret.prototype.getInfo = function(dataPath, callback) {
   }
 };
 ret.prototype.getBody = function(dataPath, callback) {
-  requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(err, data.body);
-    }
-  });
+  if (dataPath.substr(-1) === '/') {
+    callback(ret.ERR_IS_FOLDER);
+  } else {
+    requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(err, data.body);
+      }
+    });
+  }
 };
 ret.prototype.getFolder = function(dataPath, callback) {
-  requestJSON(this.makeURL(dataPath), this.token, function(err, data) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(err, data.items);
-    }
-  });
+  if (dataPath.substr(-1) === '/') {
+    requestJSON(this.makeURL(dataPath), this.token, function(err, data) {
+      if (err) {
+        callback(err);
+      } else {
+        callback(err, data.items);
+      }
+    });
+  } else {
+    callback(ret.ERR_NOT_A_FOLDER);
+  }
 };
 ret.prototype.create = function(dataPath, content, contentType, callback) {
   requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {
