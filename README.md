@@ -38,22 +38,12 @@ function getUserDataCredentials(callback) {
     localforage.getItem('userDataCredentials', callback);
   }
 }
+
 function connect(platform, host, user, pass) {
-  console.log('connect', platform, host, user, pass);
-  if (platform === 'owncloud' || platform === 'hoodie') {
-    //ownCloud and hoodie use direct credentials:
-    var userDataCredentials = Ludbud.createCredentials(platform, host, user, pass);
-    localforage.setItem('userDataCredentials', userDataCredentials, function(err) {
-      go(err, userDataCredentials);
-    });
-  } else if (platform === 'remotestorage') {
-    //remoteStorage uses webfinger discovery + OAuth:
-    Ludbud.oauth(platform, user+'@'+host);
-  } else {
-    //Dropbox, and Google Drive use OAuth to centralized end-point:
-    Ludbud.oauth(platform);
-  }
+  // only platform supported so far is 'remotestorage'
+  Ludbud.oauth(platform, user+'@'+host);
 }
+
 function go(err, userDataCredentials) {
   if (err) {
     console.log('error getting user data credentials', err);
@@ -72,8 +62,6 @@ function reset() {
 
 //... on page load:
 var ludbud;
-Ludbud.setPlatformCredentials('dropbox', 'cybbbiarf4dkrce');
-Ludbud.setPlatformCredentials('googledrive', '709507725318-3mt4ke1d4tvkc7ktbjvru3csif4nsk67.apps.googleusercontent.com');
 getUserDataCredentials(go);
 ````
 
@@ -117,8 +105,8 @@ ludbud.delete('/path/to/item', existingETag, function(err) {
 
 Helper function for the OAuth dance:
 ````js
-Ludbud.setPlatformCredentials(platform, keyOrId);
-Ludbud.createCredentials(provider, host, user, pass); -> creates credentials, use this one for the ownCloud platform
 Ludbud.oauth(provider); -> sets window.location to initiate an OAuth dance, use this for remoteStorage, Dropbox, and Google Drive platforms
 Ludbud.fromWindowLocation(); -> harvests window.location and returns the user data credentials
 ludbud.restoreWindowLocation(); -> cleans up the URL fragment after the OAuth dance (triggers a page refresh)
+// not used yet: Ludbud.setPlatformCredentials(platform, keyOrId);
+// not used yet: Ludbud.createCredentials(provider, host, user, pass); -> creates credentials, use this one for the ownCloud platform
