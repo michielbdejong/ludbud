@@ -16,20 +16,18 @@ Ludbud = (function() {
     console.log('FAIL: '+str);
   }
 function request(method, url, responseType, payload, headers, callback) {
-  console.log('request', method, url, responseType, payload, headers, callback);
   var xhr = new XMLHttpRequest(), calledBack = false;
   xhr.open(method, url);
   xhr.responseType = responseType;
   xhr.timeout = 10000;
   for (var i in headers) {
-    console.log('setting request header', i, headers[i]);
     xhr.setRequestHeader(i, headers[i]);
   }
   xhr.ontimeout = function(evt) {
     if (calledBack) {
       return;
     }
-    console.log('request timeout', evt, xhr.status);
+    ret.fail('request timeout', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -39,7 +37,7 @@ function request(method, url, responseType, payload, headers, callback) {
       return;
     }
     
-    console.log('request error', evt, xhr.status);
+    ret.fail('request error', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -48,7 +46,7 @@ function request(method, url, responseType, payload, headers, callback) {
     if (calledBack) {
       return;
     }
-    console.log('request abort', evt, xhr.status);
+    ret.fail('request abort', evt, xhr.status);
     callback(ret.ERR_TIMEOUT);
     calledBack = true;
   };
@@ -80,7 +78,11 @@ function request(method, url, responseType, payload, headers, callback) {
 }
 //convenience methods that wrap around request:
 function requestJSON(url, token, callback) {
-  return request('GET', url, 'json', undefined, {}, function(err, data) {
+  var header = {};
+  if (token) {
+    headers.Authorization =  'Bearer '+token;
+  }
+  return request('GET', url, 'json', undefined, headers, function(err, data) {
     return callback(err, (typeof data === 'object' ? data.body : data));
   });
 }
@@ -88,6 +90,7 @@ function requestArrayBuffer(method, url, token, payload, headers, callback) {
   if (token) {
     headers.Authorization =  'Bearer '+token;
   }
+console.log('headers', headers);
   return request(method, url, 'arraybuffer', payload, headers, callback);
 }
 ret.prototype.makeURL = function(dataPath, isFolder) {
@@ -279,7 +282,6 @@ ret.fromWindowLocation = function() {
   if (parsed['state']) {
     try {
       var stateObj = JSON.parse(parsed['state']);
-console.log(parsed, stateObj);
       if (stateObj.hash) { // restore hash as it was:
         windowLocationToRestore = stateObj.hash;
       } else { // restore fact that there was no hash:
@@ -291,7 +293,6 @@ console.log(parsed, stateObj);
         apiBaseURL: stateObj.apiBaseURL
       };
     } catch(e) {
-console.log(parsed, e);
     }
   }
 }

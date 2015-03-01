@@ -96,7 +96,6 @@ ret.fromWindowLocation = function() {
   if (parsed['state']) {
     try {
       var stateObj = JSON.parse(parsed['state']);
-console.log(parsed, stateObj);
       if (stateObj.hash) { // restore hash as it was:
         windowLocationToRestore = stateObj.hash;
       } else { // restore fact that there was no hash:
@@ -108,7 +107,6 @@ console.log(parsed, stateObj);
         apiBaseURL: stateObj.apiBaseURL
       };
     } catch(e) {
-console.log(parsed, e);
     }
   }
 }
