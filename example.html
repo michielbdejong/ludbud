@@ -111,15 +111,15 @@
       });
     }
     function readBody() {
-      ludbud.getBody('/ludbud/test.txt', function(err, body) {
-        console.log('R.ead body (ArrayBuffer)', err, body);
+      ludbud.getDocument('/ludbud/test.txt', function(err, data) {
+        console.log('R.ead body (ArrayBuffer)', err, data.body);
         //see if we can interpret that as utf-8:
         try {
           var fileReader = new FileReader();
           fileReader.addEventListener('loadend', function (evt) {
             console.log('R.ead body (as utf-8)', evt.target.result);
           });
-          fileReader.readAsText(new Blob([body], { type: 'text/plain;charset=utf-8'}));
+          fileReader.readAsText(new Blob([data.body], { type: 'text/plain;charset=utf-8'}));
         } catch(e) {
           console.log('Could not read ArrayBuffer as utf-8', e);
         }

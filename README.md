@@ -76,9 +76,9 @@ ludbud.getInfo('/path/to/item', function(err, info) {
   // * isFolder (boolean)
 });
 
-ludbud.getBody('/path/to/item', function(err, body) {
+ludbud.getDocument('/path/to/item', function(err, data) {
   //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
-  //if not, body is an ArrayBuffer
+  //if not, data.body is an ArrayBuffer, and data.info is like the info object from getInfo
 });
 
 ludbud.getFolder('/path/to/folder/', function(err, listing) {

@@ -141,17 +141,11 @@ ret.prototype.getInfo = function(dataPath, callback) {
     });
   }
 };
-ret.prototype.getBody = function(dataPath, callback) {
+ret.prototype.getDocument = function(dataPath, callback) {
   if (dataPath.substr(-1) === '/') {
     callback(ret.ERR_IS_FOLDER);
   } else {
-    requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, function(err, data) {
-      if (err) {
-        callback(err);
-      } else {
-        callback(err, data.body);
-      }
-    });
+    requestArrayBuffer('GET', this.makeURL(dataPath), this.token, undefined, {}, callback);
   }
 };
 ret.prototype.getFolder = function(dataPath, callback) {
