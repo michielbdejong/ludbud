@@ -97,6 +97,7 @@ ludbud.create('/path/to/item', content, contentType, function(err) {
 });
 ludbud.update('/path/to/item', newContent, newContentType, existingETag, function(err) {
   //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
+  //if you leave existingTag === undefined, it does the same as create (but this will change a bit when we add Google Drive support)
 });
 ludbud.delete('/path/to/item', existingETag, function(err) {
   //err might be Ludbud.ERR_TIMEOUT, Ludbud.ERR_ACCESS_DENIED, Ludbud.ERR_SERVER_ERROR, Ludbud.ERR_NOT_FOUND, or Ludbud.ERR_IS_FOLDER
