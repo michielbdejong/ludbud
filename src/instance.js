@@ -79,7 +79,7 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   });
 };
 ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
-  if (!existingTag) {
+  if (!existingETag) {
     return this.create(dataPath, content, contentType, callback);
   }
   requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {

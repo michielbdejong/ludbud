@@ -56,9 +56,13 @@ ret.oauth = function(platform, userAddress, scopes) {
     goTo('https://www.dropbox.com/1/oauth2/authorize');
   } else if (platform === 'googledrive') {
     goTo('https://accounts.google.com/o/oauth2/auth');
-  } else if (platform === 'remotestorage') {
+  } else if (platform === 'remotestorage' || platform === 'remotestorage-no-https') {
     var parts = userAddress.split('@');
-    requestJSON('https://' + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
+    var prefix = 'https://';
+    if (platform === 'remotestorage-no-https') {
+      prefix = 'http://';
+    }
+    requestJSON(prefix + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
         undefined, function(err, data) {
       if (err) {
         fail('error retrieving webfinger for '+userAddress, err);

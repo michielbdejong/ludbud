@@ -5,12 +5,12 @@ Ludbud = (function() {
     }
   };
 
-  ret.ERR_TIMEOUT = 'ERR_TIMEOUT';
-  ret.ERR_ACCESS_DENIED = 'ERR_ACCESS_DENIED';
-  ret.ERR_SERVER_ERROR = 'ERR_SERVER_ERROR';
-  ret.ERR_NOT_FOUND = 'ERR_NOT_FOUND';
-  ret.ERR_IS_FOLDER = 'ERR_IS_FOLDER';
-  ret.ERR_NOT_A_FOLDER = 'ERR_NOT_A_FOLDER';
+  ret.ERR_TIMEOUT = 'Ludbud.ERR_TIMEOUT';
+  ret.ERR_ACCESS_DENIED = 'Ludbud.ERR_ACCESS_DENIED';
+  ret.ERR_SERVER_ERROR = 'Ludbud.ERR_SERVER_ERROR';
+  ret.ERR_NOT_FOUND = 'Ludbud.ERR_NOT_FOUND';
+  ret.ERR_IS_FOLDER = 'Ludbud.ERR_IS_FOLDER';
+  ret.ERR_NOT_A_FOLDER = 'Ludbud.ERR_NOT_A_FOLDER';
 
   function fail(str) {
     console.log('FAIL: '+str);
@@ -170,7 +170,7 @@ ret.prototype.create = function(dataPath, content, contentType, callback) {
   });
 };
 ret.prototype.update = function(dataPath, content, contentType, existingETag, callback) {
-  if (!existingTag) {
+  if (!existingETag) {
     return this.create(dataPath, content, contentType, callback);
   }
   requestArrayBuffer('PUT', this.makeURL(dataPath), this.token, content, {
@@ -243,9 +243,13 @@ ret.oauth = function(platform, userAddress, scopes) {
     goTo('https://www.dropbox.com/1/oauth2/authorize');
   } else if (platform === 'googledrive') {
     goTo('https://accounts.google.com/o/oauth2/auth');
-  } else if (platform === 'remotestorage') {
+  } else if (platform === 'remotestorage' || platform === 'remotestorage-no-https') {
     var parts = userAddress.split('@');
-    requestJSON('https://' + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
+    var prefix = 'https://';
+    if (platform === 'remotestorage-no-https') {
+      prefix = 'http://';
+    }
+    requestJSON(prefix + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
         undefined, function(err, data) {
       if (err) {
         fail('error retrieving webfinger for '+userAddress, err);

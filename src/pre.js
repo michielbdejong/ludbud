@@ -5,12 +5,12 @@ Ludbud = (function() {
     }
   };
 
-  ret.ERR_TIMEOUT = 'ERR_TIMEOUT';
-  ret.ERR_ACCESS_DENIED = 'ERR_ACCESS_DENIED';
-  ret.ERR_SERVER_ERROR = 'ERR_SERVER_ERROR';
-  ret.ERR_NOT_FOUND = 'ERR_NOT_FOUND';
-  ret.ERR_IS_FOLDER = 'ERR_IS_FOLDER';
-  ret.ERR_NOT_A_FOLDER = 'ERR_NOT_A_FOLDER';
+  ret.ERR_TIMEOUT = 'Ludbud.ERR_TIMEOUT';
+  ret.ERR_ACCESS_DENIED = 'Ludbud.ERR_ACCESS_DENIED';
+  ret.ERR_SERVER_ERROR = 'Ludbud.ERR_SERVER_ERROR';
+  ret.ERR_NOT_FOUND = 'Ludbud.ERR_NOT_FOUND';
+  ret.ERR_IS_FOLDER = 'Ludbud.ERR_IS_FOLDER';
+  ret.ERR_NOT_A_FOLDER = 'Ludbud.ERR_NOT_A_FOLDER';
 
   function fail(str) {
     console.log('FAIL: '+str);
