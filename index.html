@@ -64,7 +64,7 @@
         });
       } else if (platform === 'remotestorage') {
         //remoteStorage uses webfinger discovery + OAuth:
-        Ludbud.oauth(platform, user+'@'+host);
+        Ludbud.oauth(platform, user+'@'+host, 'ludbud:rw');
       } else {
         //Dropbox, and Google Drive use OAuth to centralized end-point:
         Ludbud.oauth(platform);
