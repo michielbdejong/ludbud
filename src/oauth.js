@@ -34,7 +34,7 @@ function getClientId(platform) {
   }
 }
 ret.oauth = function(platform, userAddress, scopes) {
-  if (platform !== 'remotestorage') {
+  if (platform !== 'remotestorage' && platform !== 'remotestorage-allow-insecure-webfinger') {
     fail('WARNING: platform ' + platform + ' not fully supported yet');
   }
   var apiBaseURL;
@@ -56,29 +56,29 @@ ret.oauth = function(platform, userAddress, scopes) {
     goTo('https://www.dropbox.com/1/oauth2/authorize');
   } else if (platform === 'googledrive') {
     goTo('https://accounts.google.com/o/oauth2/auth');
-  } else if (platform === 'remotestorage' || platform === 'remotestorage-no-https') {
-    var parts = userAddress.split('@');
-    var prefix = 'https://';
-    if (platform === 'remotestorage-no-https') {
-      prefix = 'http://';
-    }
-    requestJSON(prefix + parts[1] + '/.well-known/webfinger?resource='+encodeURIComponent('acct:'+userAddress),
-        undefined, function(err, data) {
+  } else if (platform === 'remotestorage' || platform === 'remotestorage-allow-insecure-webfinger') {
+
+    var webfinger = new WebFinger({
+      tls_only: (platform === 'remotestorage' ? true : false)
+    });
+    webfinger.lookup(userAddress, function (err, p) {
       if (err) {
         fail('error retrieving webfinger for '+userAddress, err);
-      } else if (typeof data === 'object' && Array.isArray(data.links)) {
-        for (var i=0; i< data.links.length; i++) {
-          if (typeof data.links[i] === 'object'
-              && data.links[i].rel === 'remotestorage'
-              && typeof data.links[i].properties === 'object'
-              && typeof data.links[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2'] === 'string') {
-            apiBaseURL = data.links[i].href;
-            goTo(data.links[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2']);
+      } else if ((typeof p.idx === 'object')
+          && (typeof p.idx.links == 'object')
+          && (Array.isArray(p.idx.links.remotestorage))) {
+        for (var i=0; i< p.idx.links.remotestorage.length; i++) {
+          if ((typeof p.idx.links.remotestorage[i] === 'object')
+              && typeof p.idx.links.remotestorage[i].href === 'string'
+              && typeof p.idx.links.remotestorage[i].properties === 'object'
+              && typeof p.idx.links.remotestorage[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2'] === 'string') {
+            apiBaseURL = p.idx.links.remotestorage[i].href;
+            goTo(p.idx.links.remotestorage[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2']);
             return;
           }
         }
       } else {
-        fail('error parsing webfinger for '+userAddress + JSON.stringify(data));
+        fail('error parsing webfinger for '+userAddress + JSON.stringify(p));
       }
     });
   } else {
