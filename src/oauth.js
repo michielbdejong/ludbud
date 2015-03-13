@@ -61,27 +61,17 @@ ret.oauth = function(platform, userAddress, scopes) {
     var webfinger = new WebFinger({
       tls_only: (platform === 'remotestorage' ? true : false)
     });
-    webfinger.lookup(userAddress, function (err, p) {
+    webfinger.lookupLink(userAddress, 'remotestorage', function (err, link) {
       if (err) {
-        fail('error retrieving webfinger for '+userAddress, err);
+        fail('error discovering remoteStorage location for '+userAddress, err);
+      } else if (typeof link.href === 'string'
+              && typeof link.properties === 'object'
+              && typeof link.properties['http://tools.ietf.org/html/rfc6749#section-4.2'] === 'string') {
+        apiBaseURL = link.href;
+        goTo(link.properties['http://tools.ietf.org/html/rfc6749#section-4.2']);
       } else {
-        //webfinger.js will now guarantee:
-        // (typeof p.idx === 'object') &&
-        // (typeof p.idx.links == 'object') &&
-        // (Array.isArray(p.idx.links.remotestorage))
-        for (var i=0; i< p.idx.links.remotestorage.length; i++) {
-          //webfinger will now guarantee:
-          // (typeof p.idx.links.remotestorage[i] === 'object')
-          if (typeof p.idx.links.remotestorage[i].href === 'string'
-              && typeof p.idx.links.remotestorage[i].properties === 'object'
-              && typeof p.idx.links.remotestorage[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2'] === 'string') {
-            apiBaseURL = p.idx.links.remotestorage[i].href;
-            goTo(p.idx.links.remotestorage[i].properties['http://tools.ietf.org/html/rfc6749#section-4.2']);
-            return;
-          }
-        }
+        fail('error parsing remoteStorage link for '+userAddress + JSON.stringify(link));
       }
-      fail('error parsing webfinger for '+userAddress + JSON.stringify(p));
     });
   } else {
     fail('unknown platform '+platform);
